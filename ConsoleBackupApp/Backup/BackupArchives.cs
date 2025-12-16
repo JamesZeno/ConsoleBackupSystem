@@ -12,14 +12,12 @@ public class BackupArchives
     private CancellationToken _cancellationToken;
     private Mutex _writeMutex;
     public readonly ArchiveQueue _archive;
-    private BackupStat _archiveBackupStat;
     private readonly string _zipFilePath;
 
     public BackupArchives(ArchiveQueue archiveQueue, string folderPath)
     {
         _writeMutex = new();
         _archive = archiveQueue;
-        _archiveBackupStat = new();
         _zipFilePath = folderPath + _archive.Drive + ".zip";
     }
 
@@ -88,8 +86,9 @@ public class BackupArchives
                 Logger.Instance.Log(LogLevel.Error, "Attempted to start archive process before running start.");
                 return;
             }
-            _zipArchive.CreateEntryFromFile(filePath, entryName, COMPRESSION_LEVEL);
-            _archiveBackupStat.FileCalls++;
+            long originalSize = new FileInfo(filePath).Length;
+            ZipArchiveEntry zipArchiveEntry = _zipArchive.CreateEntryFromFile(filePath, entryName, COMPRESSION_LEVEL);
+            _archive.BackupStat.AddFileSize(originalSize);
         }
         catch (Exception e)
         {
@@ -107,9 +106,6 @@ public class BackupArchives
         {
             _writeMutex.WaitOne();
             _zipArchive?.Dispose();
-
-            //Get size of archive after complete
-            _archiveBackupStat.Size = new FileInfo(_zipFilePath).Length;
         }
         catch (Exception e)
         {
@@ -121,11 +117,4 @@ public class BackupArchives
         }
         _writeMutex.Close();
     }
-
-    //Get archieve's stats
-    public BackupStat GetArchivesStats()
-    {
-        return _archiveBackupStat;
-    }
-    
 }
