@@ -45,7 +45,9 @@ public class BackupProcessTest
     public void Setup()
     {
         _cancellationTokenSource = new CancellationTokenSource();
-        _archiveQueues = [new(_currentDrive)];
+        BackupStat backupStat = new();
+        _archiveQueues = [new(
+            _currentDrive, backupStat)];
     }
 
     [TearDown]

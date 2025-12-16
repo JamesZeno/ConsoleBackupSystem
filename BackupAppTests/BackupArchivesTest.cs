@@ -51,7 +51,8 @@ public class BackupArchivesTest
     [SetUp]
     public void Setup()
     {
-        _archiveQueue = new ArchiveQueue(_currentDrive);
+        BackupStat backupStat = new();
+        _archiveQueue = new ArchiveQueue(_currentDrive, backupStat);
         _cancellationTokenSource = new CancellationTokenSource();
         _backupArchives = new BackupArchives(_archiveQueue, _archiveFolder);
     }

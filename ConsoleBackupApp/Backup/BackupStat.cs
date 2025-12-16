@@ -1,23 +1,33 @@
 namespace ConsoleBackupApp.Backup;
 
-public struct BackupStat
+public class BackupStat
 {
     private const long MEGABYTE_TO_BYTE = 1_048_576;
-    public long Size;
-    public int FileCalls;
-    public BackupStat(long fileSize = 0, int fileCalls = 0)
+
+    private long _totalSize;
+    private int _currentFiles;
+    private int _totalFiles;
+    
+    public long TotalSize => Interlocked.Read(ref _totalSize);
+    public int CurrentFiles => Volatile.Read(ref _currentFiles);
+    public int TotalFiles => Volatile.Read(ref _totalFiles);
+
+
+
+    public void AddFileSize(long bytes)
     {
-        Size = fileSize;
-        FileCalls = fileCalls;
+        Interlocked.Add(ref _totalSize, bytes);
+        Interlocked.Increment(ref _currentFiles);
     }
 
-    public static BackupStat operator +(BackupStat a, BackupStat b)
+    public void IncrementTotalFile()
     {
-        return new BackupStat(a.Size + b.Size, a.FileCalls + b.FileCalls);
+        Interlocked.Increment(ref _totalFiles);
     }
 
-    public readonly long GetSizeInMegaBytes()
+    public long GetSizeInMegaBytes()
     {
-        return Size / MEGABYTE_TO_BYTE;
+        return TotalSize / MEGABYTE_TO_BYTE;
     }
+
 }
